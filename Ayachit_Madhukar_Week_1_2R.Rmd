@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+# Import required packages
+library("readxl")
+# Import data to be used for visualization
+fileData = paste(getwd(), '/data/obama-approval-ratings.xls', sep = '')
+obama = read_excel(fileData)
+
+# Examine data
+obama
+```
+```{r}
+library(ggplot2)
+obama %>%
+    dplyr::select(Issue, Approve) %>%
+    dplyr::arrange(-Approve) %>%
+    dplyr::mutate(SortOrder = factor(Issue, Issue)) %>% 
+    ggplot2::ggplot(ggplot2::aes(x=SortOrder, y=Approve, fill=Issue)) +
+        ggplot2::geom_bar(stat='identity', color='black') + 
+        ggplot2::xlab('Issue') + ggplot2::ylab('Approval Count') +
+        ggplot2::theme(axis.text.x=element_blank() ,strip.text = element_text(color = "transparent")) +
+        ggplot2::ggtitle('Approval Rating of Obama')
+
+```
+
+```{r}
+# We need to reshape the data to long format for this purpose
+obama_long = obama %>%
+    tidyr::gather('Reaction','Ratings', Approve, Disapprove, None)
+
+# Plot stacked
+ggplot2::ggplot(data = obama_long, ggplot2::aes(x = Issue, y = Ratings, fill = Reaction)) + 
+    ggplot2:: geom_bar(stat='identity') + 
+    ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    ggplot2::scale_fill_brewer(palette = 15)
+```
+```{r}
+# For this purpose, I would need the long data set. Because we need the stacked chart before creating pie chart from it
+# Since pie chart is not easy to digest, I would NOT use the same color family for the different sections
+obama_long %>%
+    dplyr::filter(Issue=='Immigration') %>%
+    ggplot2::ggplot(ggplot2::aes(x="", y=Ratings, fill=Reaction))+
+        ggplot2::geom_bar(width = 1, stat = 'identity') +
+        ggplot2::coord_polar('y', start=0) + 
+        ggplot2::geom_text(aes(label = Ratings), position = position_stack(vjust = 0.5)) +
+        ggplot2::ggtitle(label = 'Reaction on Immigration Issue in Obama Era') +
+        ggplot2::scale_fill_brewer(palette='Spectral') 
+        ggplot2::theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+```
+```{r}
+obama_long %>%
+    dplyr::filter(Issue=='Education') %>%
+    dplyr::mutate(ymax=cumsum(Ratings),
+                  ymin=c(0,ymax[1:length(ymax)-1])) %>%
+    ggplot2::ggplot(ggplot2::aes(fill=Reaction, ymax=ymax, ymin=ymin, xmax=4, xmin=3)) +
+         ggplot2::geom_rect() +
+         ggplot2::coord_polar(theta='y') +
+         ggplot2::xlim(c(0, 4)) +
+         ggplot2::theme(panel.grid=element_blank()) +
+         ggplot2::theme(axis.text=element_blank()) +
+         ggplot2::theme(axis.ticks=element_blank()) +
+         ggplot2::annotate('text', x = 0, y = 0, label = 'Reaction on Education') +
+         ggplot2::labs(title='')
+```
+
+
+
