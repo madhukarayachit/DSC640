@@ -1,0 +1,74 @@
+---
+title: "tree maps, area charts, and stacked area charts  "
+output: html_notebook
+---
+
+
+```{r}
+# setting current working diirectory
+setwd("/Users/madhukarayachit/DSC640")
+```
+
+```{r}
+#Load in libraries
+
+library(treemap)     ## to draw tree maps
+library(treemapify)     ## to draw tree maps
+library(ggplot2)     ## to draw plots
+```
+
+
+```{r}
+# load data
+
+df1 <- read.csv('Data/ex3-3/unemployement-rate-1948-2010.csv')
+df2 <- read.table('Data/ex3-3/expenditures.txt', sep = '\t', header = TRUE)
+
+head(df1)
+head(df2)
+```
+
+## Tree Map Chart
+```{r}
+df2_2000 <- df2[df2$'year' == 2000, ]
+df2_2000
+amts <- df2_2000$expenditure
+
+## using treemap function from treemap library
+treemap(df2_2000, index = c("category"), vSize = "expenditure", vColor = "category", type = "index", stdErr = NULL, title = "Tree map for expenditure for year 2000")
+## plot treemap using ggplot
+ggplot(df2_2000, 
+       aes(area = expenditure, 
+           fill = category, 
+           label = category, 
+           subgroup = paste(category, '\n', '$', amts))) + 
+  geom_treemap() + 
+  geom_treemap_subgroup_text(place = "center", size = 9) +
+  ggtitle('Tree map for expenditure for year 2000') + 
+  theme_bw()
+
+```
+## Area Chart
+
+```{r}
+# Create Step chart
+## calculate average unemployment rate by year
+new_df <- aggregate(df1$Value, list(df1$Year), FUN=mean)
+## assign appropriate names to the columns
+names(new_df) <- c('year', 'unemployment_rate')
+ggplot(new_df, aes(x=year, y=unemployment_rate)) + 
+    ggtitle('Average Unemployment rates by year') + 
+    geom_area() + 
+    theme_classic()
+```
+
+## Stacked Area Chart
+```{r}
+ggplot(df2, aes(x=year, y=expenditure, fill=category, label = category)) + 
+    ggtitle('Stacked Area chart for expenditure by year') + 
+    geom_area() + 
+    theme_bw()
+```
+
+
+
