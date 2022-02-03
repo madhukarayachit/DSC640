@@ -1,0 +1,70 @@
+---
+title: 'DSC640 Assignment # 4.2 - Week_07_08'
+author: "Ayachit Madhukar"
+date: "Jan 24 2022"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r}
+# setting current working diirectory
+setwd("/Users/madhukarayachit/DSC640")
+```
+
+```{r}
+##load required libraries
+library(ggplot2)     ## to draw plots
+library(ggrepel)     ## to add labels to bubble chart
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+df1 <- read.csv('Data/ex4-2/crimerates-by-state-2005.csv')
+df2 <- read.csv('Data/ex4-2/life-expectancy.csv')
+head(df1, 10)
+head(df2)
+## from df1, we will filter out records related to "District of Columbia" and
+## entire country which has state name as "United States"
+df1_temp <- df1[((df1$state != "District of Columbia") & (df1$state != "United States")), ]
+## display initial 10 records to ensure filtering has worked as expected
+head(df1_temp, 10)
+```
+
+## Scatter Plots
+```{r}
+## plot Scatter plot using ggplot
+ggplot(df1_temp, aes(x = murder, y = burglary)) + 
+    geom_point() + 
+    ggtitle('US state wise murder vs burglary') +
+    ggrepel::geom_text_repel(aes(label=state),
+                             max.overlaps = Inf,
+                             box.padding = 0.3) +
+    theme_bw()
+```
+
+## Bubble Plots
+```{r}
+## plot Bubble chart using ggplot
+ggplot(df1_temp, aes(x = murder, y = burglary, size = population)) +
+    geom_point(alpha = 0.8) + 
+    scale_size(name = "Population") + 
+    ggrepel::geom_text_repel(aes(murder, burglary, label=state))
+    ggtitle('US state wise murder vs burglary') + 
+    theme_bw()
+```
+## Density Plot
+```{r}
+## Density plot using plot() method for life expectancy
+plot(density(df2$expectancy, bw = 0.5), 
+     xlab = "life expectancy (years)")
+## Density plot using ggplot for life expectancy
+ggplot(df2, aes(x = expectancy)) + 
+  geom_density() + 
+  xlab("life expectancy (years)")
+  ggtitle("World wide life expectancy density map") + 
+  theme_bw()
+```
+
